@@ -83,7 +83,6 @@ public class ExecutorServiceTest {
         	// 결과값이 중요하지 않을경우 get 메소드는 타임아웃을 지정할 수도 있다.
         	// 200밀리세컨드 후에 TimeoutException을 발생시킨다. 
         	// String result = future.get(200, TimeUnit.MILLISECONDS);
-        	
         	System.out.println("isDone: " + future.isDone());
         	
 		}
