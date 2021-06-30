@@ -15,6 +15,9 @@ import java.util.concurrent.TimeoutException;
 import org.junit.Test;
 
 /**
+ * 스레드를 생성하는 것은 보통 비용이 큰 작업이라 이를 줄이기 위해 미리 생성된 스레드를 재활용하는 스레드풀을 사용한다.
+ * ExecutorService는 크게 작업큐와 스레드풀로 구성되어 있다. 사용할수 있는 스레드가 없다면 큐에 대기하게 된다. 
+ * 
  * @see https://www.baeldung.com/java-executor-service-tutorial
  * @see https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/Executors.html
  * @author imac
@@ -27,6 +30,11 @@ public class ExecutorServiceTest {
 		// 팩토리메소드로 ExecutorService 인스턴스 생성
 		int coreCount = Runtime.getRuntime().availableProcessors();
 		ExecutorService executorService = Executors.newFixedThreadPool(coreCount);
+		
+//		ExecutorService executorService = Executors.newCachedThreadPool();
+//		ExecutorService executorService = Executors.newScheduledThreadPool(coreCount);
+//		ExecutorService executorService = Executors.newSingleThreadExecutor();
+//		ExecutorService executorService = Executors.newWorkStealingPool(coreCount);
 
 		for (Integer value : Arrays.asList(1, 2, 3, 4, 5)) {
 			executorService.execute(new SomeRunnableTask(value));
@@ -86,6 +94,27 @@ public class ExecutorServiceTest {
 
 		executorService.shutdown();
 	}
+	
+	@Test
+	public void awaitTermination_메소드() throws InterruptedException {
+		int coreCount = Runtime.getRuntime().availableProcessors();
+		ExecutorService executorService = Executors.newFixedThreadPool(coreCount);
+
+		for (Integer value : Arrays.asList(1, 2, 4, 5)) {
+			// submit 메소드는 Runnable을 할당할 수 있고 해당 스레드의 작업상태등을 추적할 수 없다.
+			executorService.execute(new SomeRunnableTask(value));
+		}
+
+		// 500 밀리세컨드를 기다린후 완료되지 않은 작업이 있을경우 false를 리턴한다.
+		// 모든 작업이 완료되었다면 true를 리턴하고 shutdown 한다.
+		if(executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+			System.out.println("작업 종료");
+		} else {
+			System.out.println("진행중인 작업 있음");
+			
+			executorService.shutdownNow();
+		}
+	}
 
 	/**
 	 * test Runnable class
@@ -109,7 +138,7 @@ public class ExecutorServiceTest {
 	}
 
 	/**
-	 * test Runnable class
+	 * test Callable class
 	 * 
 	 * @author imac
 	 *
